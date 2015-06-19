@@ -1,4 +1,5 @@
 <?php
+die('Blocked');
 /**
  * Generator 1M rows in DB
  */
@@ -25,14 +26,16 @@ for($i = 0; $i < 999999; $i++) {
 	}
 	$description = mysql_escape_string($description);
 
-	mysql_query("INSERT INTO `catalog`
-		(`id`, `name`, `description`, `price`, `image_url`) VALUES
-		(NULL,
-		'{$title}',
-		'{$description}',
-		'".(float)(mt_rand(1, 1000).".".mt_rand(1, 99))."',
-		'https://pp.vk.me/c424830/v424830492/6800/4W_bSTYHBEY.jpg')
-		");
+	$sql = "INSERT INTO `catalog` "
+		 . "(`id`, `name`, `description`, `price`, `image_url`) VALUES "
+		 . "(NULL,"
+		 . "'{$title}',"
+		 . "'{$description}',"
+		 . "'" . floatval(mt_rand(1, 99999) . "." . mt_rand(0, 9) . mt_rand(0, 9)) . "',"
+		 . "'https://pp.vk.me/c424830/v424830492/6800/4W_bSTYHBEY.jpg')";
+
+	mysql_query($sql);
+
 }
 
 ?>

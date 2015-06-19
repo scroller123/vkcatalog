@@ -2,11 +2,18 @@
 include_once 'init.php';
 include_once 'dbconnect.php';
 include_once 'functions.php';
+fix_time();
 
-if (!($memcache_obj = memcache_connect(MEMCACHE_SERVER, MEMCACHE_PORT))) {
-	$ERROR = 'Сервер memcache недоступен';
+if (isset($_GET['add'])) {
+
+} else {
+	include 'catalog.php';
 }
 
 
-include 'templates/template.html.php';
+if (isset($_GET['loadtest'])) {
+	print get_execution_time();
+} else {
+	include 'templates/template.html.php';
+}
 ?>

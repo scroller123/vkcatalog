@@ -9,9 +9,6 @@ include_once 'functions.php';
 fix_time();
 mt_srand(time());
 
-if (!($memcache_obj = memcache_connect(MEMCACHE_SERVER, MEMCACHE_PORT))) {
-	$ERROR = 'Сервер memcache недоступен';
-}
 
 if (empty($ERROR)) {
 	foreach (array('id','price') as $key) {

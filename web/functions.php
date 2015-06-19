@@ -16,7 +16,7 @@ function fix_time()
 
 function get_execution_time()
 {
-	return gettime()-$_SESSION[starttime];
+	return floatval(gettime()-$_SESSION[starttime]);
 }
 
 ?>

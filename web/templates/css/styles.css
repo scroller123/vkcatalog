@@ -22,3 +22,11 @@ body {
 	font-weight: bold;
 	color: red;
 }
+
+.catalog {}
+.catalog .title {
+	font-weight: bold;
+}
+.catalog .description {
+	font-size: 8pt;
+}

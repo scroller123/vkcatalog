@@ -1,7 +1,7 @@
 html {
 	
 }
-body {
+body, textarea {
 	font-family: 'Arial';
 }
 
@@ -11,6 +11,13 @@ a {
 a:hover {
 	text-decoration: none;
 	color: #ab0000;
+}
+
+.logo {
+	font-weight: bold;
+	font-size: 26pt;
+	text-decoration: none;
+	line-height: 40pt;
 }
 
 .content_wrap {
@@ -34,6 +41,7 @@ a:hover {
 .catalog {
 	padding: 0;
 	margin: 0;
+	width: 100%;
 }
 .catalog .title {
 	font-weight: bold;
@@ -54,4 +62,44 @@ a:hover {
 	font-weight: bold;
 	color: #ab0000;
 	text-decoration: none;
+}
+
+form {}
+form .field {
+	margin-bottom: 10px;
+}
+form .field .label {
+	font-size: 10pt;
+	color: #808080;
+}
+form .field .input {}
+form .field .input input {
+	font-size: 12pt;
+	padding: 5px 5px;
+	width: 500px;
+}
+form .field .input textarea {
+	font-size: 12pt;
+	padding: 5px 5px;
+	width: 100%;
+}
+form .field .price {
+	width: 100px !important;
+}
+form .field .error {
+	font-size: 10pt;
+	font-weight: normal;
+}
+
+.clear {
+	clear: both;
+}
+
+.infomessage {
+	float: left;
+	background: green;
+	padding: 4px 5px;
+	color: white;
+	font-size: 10pt;
+	margin-bottom: 10px;
 }

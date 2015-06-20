@@ -7,8 +7,9 @@ fix_time();
 
 
 if (isset($_GET['add'])) {
-
-
+	include 'add.php';
+} elseif (isset($_GET['edit'])) {
+	include 'edit.php';
 } else {
 	include 'catalog.php';
 }
@@ -16,7 +17,7 @@ if (isset($_GET['add'])) {
 
 
 if (isset($_GET['loadtest'])) {
-	print get_execution_time();
+	print sprintf("%0.10f", get_execution_time());
 } else {
 	include 'templates/template.html.php';
 }

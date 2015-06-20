@@ -4,8 +4,8 @@
  *
  * SERVER INFORMATION:
  * Operating system	Debian Linux 6.0
- * Processor information	Intel(R) Core(TM) i3-4130 CPU @ 3.40GHz, 4 cores
- * Real memory 8 GB
+ * Processor information	1 CPU Intel Core i3-4130 x 2 ядра HT
+ * Real memory RAM ECC 8 Гб
  *
  */
 header('Content-type: text/html; charset=utf-8');
@@ -27,6 +27,7 @@ $start = gettime();
  * LOAD 1000 PAGES !
  */
 for($j=0; $j<10; $j++) {
+	$loadstart = gettime();
 	$ch = array();
 	$mh = curl_multi_init();
 	$empty_content_counter = 0;
@@ -60,7 +61,7 @@ for($j=0; $j<10; $j++) {
 
 
 	//close the handles
-	foreach ($ch as $i=>$c) {
+	foreach ($ch as $c) {
 		$content = curl_multi_getcontent($c);
 		if (empty($content))
 			$empty_content_counter++;
@@ -70,10 +71,10 @@ for($j=0; $j<10; $j++) {
 	}
 	print '<div style="float: left; border: 1px solid #606060; margin: 0px 5px 5px 0px; padding: 5px; ">';
 	print 'Среднее: ' . ($total/count($ch)) . '<br/>';
-	print 'Максимум: <strong' . ($max >= 0.3 ? ' style="color: red"' : '') . '>' . $max . '</strong><br/>';
+	print 'Максимум: <strong' . ($max >= 0.5 ? ' style="color: red"' : '') . '>' . $max . '</strong><br/>';
 	curl_multi_close($mh);
 
-	print count($ch).' страниц, выполнено за '.(gettime()-$start).' сек.<br/>';
+	print count($ch).' страниц, выполнено за '.(gettime()-$loadstart).' сек.<br/>';
 	if ($empty_content_counter > 0)
 		print $empty_content_counter . ' страниц без результата<br/>';
 
@@ -82,4 +83,9 @@ for($j=0; $j<10; $j++) {
 }
 
 ?>
-<div style="clear: both;">Всего затрачено: <?php print (gettime()-$start);?> сек.</div>
+<div style="clear: both;">Всего загружено <?php print $j*$i?> страниц за: <?php print (gettime()-$start);?> сек.</div>
+
+<div style="color: #a0a0a0; font-size: 8pt; margin-top: 10px;">
+	Processor information	1 CPU Intel Core i3-4130 x 2 ядра HT<br/>
+	Real memory RAM ECC 8 Гб
+</div>

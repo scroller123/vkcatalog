@@ -19,4 +19,5 @@ function get_execution_time()
 	return floatval(gettime()-$_SESSION[starttime]);
 }
 
+
 ?>

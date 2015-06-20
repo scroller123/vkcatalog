@@ -8,12 +8,22 @@
 <body>
 	<div class="content_wrap">
 		<div class="content">
-			<h1>VK CATALOG</h1>
+			<a href="/" class="logo">VK CATALOG</a>
+			<div class="clear"></div>
+			<?php
+			if ($_SESSION['infomessage']) {
+				print '<div class="infomessage">' . $_SESSION['infomessage'] . '</div><div class="clear"></div>';
+				unset($_SESSION['infomessage']);
+			}
+			?>
+
 			<?php if ($ERROR):?>
 				<div class="error"><?php print $ERROR;?></div>
 			<?php else:?>
 
 				<?php if (!empty($CATALOG)):?>
+					<div class="add_link"><a href="?add">Добавить товар</a></div>
+
 					<table class="catalog">
 					<tr class="head">
 						<td class="id">
@@ -39,11 +49,14 @@
 								<?php endif;?>
 							<?php endif;?>
 						</td>
+						<td></td>
+						<td></td>
 					</tr>
-					<?php foreach ($CATALOG as $row):?>
+					<?php foreach ($CATALOG as $i=>$row):?>
 						<tr>
 							<td class="id">
 								<?php print $row['id']?>
+								<div style="font-size: 7pt; color: #c0c0c0;"><?php print ($i+1)?></div>
 							</td>
 							<td class="image">
 								<?php if ($row['image_url']):?>
@@ -57,56 +70,67 @@
 							<td class="price">
 								<?php print $row['price']?>
 							</td>
+							<td>
+								<a href="?edit&id=<?php print $row['id']?>">Редактировать</a>
+							</td>
+							<td>
+								<a href="?delete&id=<?php print $row['id']?>" onclick="return confirm('Вы уверены, что хотите удалить?');">Удалить</a>
+							</td>
+							<td>
+							</td>
 						</tr>
 					<?php endforeach;?>
 					</table>
 
 					<div class="pages">
-					<?php
-					$params = $_GET;
-					unset($params['page']);
+						<?php
+						$params = $_GET;
+						unset($params['page']);
 
-					$used_pages = array();
+						$used_pages = array();
 
-					for($p = 1; $p <= 3; $p++) {
-						if ($p <= $TOTAL_PAGES) {
-							array_push($used_pages, $p);
-							print '<a href="?' . http_build_query($params) . '&page=' . $p . '" ' . ($p == $_GET['page'] ? 'class="active"' : '') . '>' . $p . '</a> ';
+						for($p = 1; $p <= 3; $p++) {
+							if ($p <= $TOTAL_PAGES) {
+								array_push($used_pages, $p);
+								print '<a href="?' . http_build_query($params) . '&page=' . $p . '" ' . ($p == $_GET['page'] ? 'class="active"' : '') . '>' . $p . '</a> ';
+							}
 						}
-					}
 
-					if ($_GET['page'] >= 5) {
-						print ' ... ';
-					}
-
-					for($p = $_GET['page'] - 2; $p <= $_GET['page'] + 2; $p++) {
-						if ($p >= 1 && $p <= $TOTAL_PAGES && !in_array($p, $used_pages)) {
-							array_push($used_pages, $p);
-							print '<a href="?' . http_build_query($params) . '&page=' . $p . '" ' . ($p == $_GET['page'] ? 'class="active"' : '') . '>' . $p . '</a> ';
+						if ($_GET['page'] >= 7) {
+							print ' ... ';
 						}
-					}
 
-					if ($_GET['page'] <= $TOTAL_PAGES-6) {
-						print ' ... ';
-					}
-
-					for($p = $TOTAL_PAGES-2; $p <= $TOTAL_PAGES; $p++) {
-						if ($p >= 1 && !in_array($p, $used_pages)) {
-							array_push($used_pages, $p);
-							print '<a href="?' . http_build_query($params) . '&page=' . $p . '" ' . ($p == $_GET['page'] ? 'class="active"' : '') . '>' . $p . '</a> ';
+						for($p = $_GET['page'] - 2; $p <= $_GET['page'] + 2; $p++) {
+							if ($p >= 1 && $p <= $TOTAL_PAGES && !in_array($p, $used_pages)) {
+								array_push($used_pages, $p);
+								print '<a href="?' . http_build_query($params) . '&page=' . $p . '" ' . ($p == $_GET['page'] ? 'class="active"' : '') . '>' . $p . '</a> ';
+							}
 						}
-					}
 
-					?>
+						if ($_GET['page'] <= $TOTAL_PAGES-6) {
+							print ' ... ';
+						}
+
+						for($p = $TOTAL_PAGES-2; $p <= $TOTAL_PAGES; $p++) {
+							if ($p >= 1 && !in_array($p, $used_pages)) {
+								array_push($used_pages, $p);
+								print '<a href="?' . http_build_query($params) . '&page=' . $p . '" ' . ($p == $_GET['page'] ? 'class="active"' : '') . '>' . $p . '</a> ';
+							}
+						}
+						?>
 					</div>
 
 
+				<?php elseif(isset($_GET['add']) || isset($_GET['edit'])):?>
+
+					<?php print $CONTENT;?>
 
 				<?php endif;?>
 			<?php endif;?>
 
 			<br/>
-			Создано за <?php print get_execution_time();?> сек.
+
+			Создано за <?php print sprintf("%0.10f", get_execution_time());?> сек.
 		</div>
 	</div>
 

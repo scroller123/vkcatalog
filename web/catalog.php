@@ -12,8 +12,13 @@ if (!isset($_GET['direction']) || ($_GET['direction'] != 'asc' && $_GET['directi
 if (empty($_GET['page']) || is_nan($_GET['page']))
 	$_GET['page'] = 1;
 
+
+$_SESSION['page']['order'] = $_GET['order'];
+$_SESSION['page']['direction'] = $_GET['direction'];
+$_SESSION['page']['page'] = $_GET['page'];
+
 if ($TOTAL_ITEMS = memcache_get($memcache_obj, 'vk-' . $_GET[order] . $_GET[direction] . '-count')) {
-	$TOTAL_PAGES = round($TOTAL_ITEMS / PAGE_SIZE);
+	$TOTAL_PAGES = ceil($TOTAL_ITEMS / PAGE_SIZE);
 
 	$page_link = mysql_fetch_assoc(mysql_query("SELECT `id`, `value` FROM `catalog_" . $_GET[order] . $_GET[direction] . "` WHERE `id` = " . (empty($_GET['page']) ? 1 : mysql_escape_string($_GET['page']))));
 	$key = memcache_get($memcache_obj, 'vk-' . $_GET[order] . $_GET[direction] . '-' . $page_link['value']);

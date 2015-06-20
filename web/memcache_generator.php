@@ -1,5 +1,5 @@
 <?php
-die('Blocked');
+// die('Blocked');
 /**
  * Generator memcache indexes
  */
@@ -22,7 +22,7 @@ if (empty($ERROR)) {
 			memcache_set($memcache_obj, 'vk-' . strtolower($key . $order) . '-count', mysql_num_rows($result), 0, 0);
 			$line = mysql_fetch_array($result, MYSQL_ASSOC);
 			memcache_set($memcache_obj, 'vk-' . strtolower($key . $order) . '-first', array('cur'=>$line['id']), 0, 0);
-			mysql_query("DELETE * FROM `catalog_" . strtolower($key . $order) . "`");
+// 			mysql_query("DELETE * FROM `catalog_" . strtolower($key . $order) . "`");
 
 			while ($next = mysql_fetch_array($result, MYSQL_ASSOC)) {
 				$var_key = memcache_get($memcache_obj, 'vk-' . strtolower($key . $order) . '-'.$line['id']);
@@ -40,7 +40,7 @@ if (empty($ERROR)) {
 				 * Save keys of the first element at each page (items per page = PAGE_SIZE)
 				 */
 				if ($index++ % PAGE_SIZE == 1) {
-			 		mysql_query("INSERT INTO `catalog_" . strtolower($key . $order) . "` (`value`) VALUES ('{$line['id']}')");
+// 			 		mysql_query("INSERT INTO `catalog_" . strtolower($key . $order) . "` (`value`) VALUES ('{$line['id']}')");
 				}
 
 				$prev = $line;

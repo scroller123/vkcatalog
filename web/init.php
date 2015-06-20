@@ -2,14 +2,10 @@
 header('Content-type: text/html; charset=utf-8');
 session_start();
 
-error_reporting(E_ALL ^ E_NOTICE ^ E_WARNING);
-ini_set('display_errors','On');
-
-
 define('PAGE_SIZE', 50);
 
 define('MEMCACHE_SERVER', '91.221.36.6');
-define('MEMCACHE_PORT', 11711);
+define('MEMCACHE_PORT', 12721);
 
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'vkcatalog');
@@ -21,12 +17,5 @@ global $memcache_obj;
 if (!($memcache_obj = memcache_connect(MEMCACHE_SERVER, MEMCACHE_PORT))) {
 	$ERROR = 'Сервер memcache недоступен';
 }
-
-
-if (!isset($_SESSION[order]))
-	$_SESSION[order] = 'id';
-
-if (!isset($_SESSION[order_direction]))
-	$_SESSION[direction] = 'asc';
 
 ?>

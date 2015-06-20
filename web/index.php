@@ -4,11 +4,15 @@ include_once 'dbconnect.php';
 include_once 'functions.php';
 fix_time();
 
+
+
 if (isset($_GET['add'])) {
+
 
 } else {
 	include 'catalog.php';
 }
+
 
 
 if (isset($_GET['loadtest'])) {

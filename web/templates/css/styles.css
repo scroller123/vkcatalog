@@ -5,6 +5,14 @@ body {
 	font-family: 'Arial';
 }
 
+a {
+	color: #202020;
+}
+a:hover {
+	text-decoration: none;
+	color: #ab0000;
+}
+
 .content_wrap {
 	width: 1000px;
 	margin: 0 auto;
@@ -23,10 +31,27 @@ body {
 	color: red;
 }
 
-.catalog {}
+.catalog {
+	padding: 0;
+	margin: 0;
+}
 .catalog .title {
 	font-weight: bold;
 }
 .catalog .description {
 	font-size: 8pt;
+}
+.catalog td {
+	padding: 5px;
+	vertical-align: top;
+}
+.catalog td.id,
+.catalog td.price {
+	white-space: nowrap;
+}
+
+.pages .active {
+	font-weight: bold;
+	color: #ab0000;
+	text-decoration: none;
 }

@@ -187,7 +187,6 @@ if (!empty($data)) {
 						}
 					}
 				}
-				exit();
 
 				$_SESSION['infomessage'] = 'Товар сохранен';
 			} else {

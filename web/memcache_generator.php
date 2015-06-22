@@ -1,5 +1,5 @@
 <?php
-// die('Blocked');
+die('Blocked');
 /**
  * Generator memcache elements list
  */

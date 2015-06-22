@@ -23,5 +23,14 @@
 			<div class="input"><input type="text" class="form-control" name="form[image]" value="<?php print isset($_POST['form']['image']) ? $_POST['form']['image'] : $data['image_url']?>" /></div>
 		</div>
 
-	    <input type="submit" value="<?php print isset($_GET['add']) ? 'Добавить' : 'Редактировать' ?>" class="btn btn-success">
+	    <input type="submit" value="<?php print isset($_GET['add']) ? 'Добавить' : 'Редактировать' ?>" class="btn btn-success" onclick="disableButton(this)">
 </form>
+
+<script type="text/javascript">
+function disableButton (button) {
+	button.style.display = "none";
+	var div = document.createElement("DIV");
+	div.innerHTML = "<input type='button' value='Загрузка...' disabled='disabled'/>";
+	button.parentNode.insertBefore(div, button.nextSibling);
+}
+</script>

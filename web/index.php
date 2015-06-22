@@ -7,13 +7,14 @@ fix_time();
 
 
 if (isset($_GET['add'])) {
-	include 'add.php';
+	include 'action/add.php';
 } elseif (isset($_GET['edit'])) {
-	include 'edit.php';
+	include 'action/edit.php';
+} elseif (isset($_GET['delete'])) {
+	include 'action/delete.php';
 } else {
-	include 'catalog.php';
+	include 'action/catalog.php';
 }
-
 
 
 if (isset($_GET['loadtest'])) {

@@ -27,11 +27,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 					$count = memcache_get($memcache_obj, 'vk-' . strtolower($key . $order) . '-count');
 					memcache_replace($memcache_obj, 'vk-' . strtolower($key . $order) . '-count', $count + 1, 0, 0);
 
-					$look_after = mysql_fetch_assoc(mysql_query("SELECT `id` FROM `catalog`
-							WHERE `id` <> " . $ID . "
-							  AND `" . $key . "` " . ($order=='ASC' ? '>' : '<') . "= '" . ($key=='id' ? $ID : mysql_escape_string($_POST['form']['price'])) . "'
-							ORDER BY `" . $key . "` " . $order . "" . ($key!='id' ? ', `id` DESC' : '') . "
-							LIMIT 1"));
+					$look_after = mysql_fetch_assoc(mysql_query("SELECT `id` FROM `catalog` "
+							. " WHERE `id` <> " . $ID
+							. " 	  AND `" . $key . "` " . ($order=='ASC' ? '>' : '<') . "= '" . ($key=='id' ? $ID : mysql_escape_string($_POST['form']['price'])) . "'"
+							. " ORDER BY `" . $key . "` " . $order . "" . ($key!='id' ? ', `id` DESC' : '')
+							. " LIMIT 1"));
 
 
 					if (empty($look_after)) {
@@ -67,7 +67,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 							memcache_replace($memcache_obj, 'vk-' . strtolower($key . $order) . '-'.$look_after['id'], array('next'=>$var_key['next'], 'prev'=>$ID), 0, 0);
 
 							$pages = mysql_query("SELECT `id`,`value` FROM `catalog_" . strtolower($key . $order) . "` ORDER BY `id` ASC");
-
 							$insert_values = array();
 							while($page = mysql_fetch_assoc($pages)) {
 								$cur_key = memcache_get($memcache_obj, 'vk-' . strtolower($key . $order) . '-'.$page['value']);
@@ -110,11 +109,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 							if (!is_null($page)) {
 								$pages = mysql_query("SELECT `id`,`value` FROM `catalog_" . strtolower($key . $order) . "` WHERE `id` >= " . $page['id'] . " ORDER BY `id` ASC");
-
+								$insert_values = array();
 								while($page = mysql_fetch_assoc($pages)) {
 									$cur_key = memcache_get($memcache_obj, 'vk-' . strtolower($key . $order) . '-'.$page['value']);
-									mysql_query("UPDATE `catalog_" . strtolower($key . $order) . "` SET `value` = " . $cur_key['prev'] . " WHERE `id` = " . $page['id']);
+// 									mysql_query("UPDATE `catalog_" . strtolower($key . $order) . "` SET `value` = " . $cur_key['prev'] . " WHERE `id` = " . $page['id']);
+									$insert_values[] = "({$page['id']},{$cur_key['prev']})";
 								}
+								mysql_query("INSERT INTO `catalog_" . strtolower($key . $order) . "` (`id`,`value`) VALUES " . implode(",", $insert_values) . " ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)");
 
 	 							// generate last page if needed
 								$n = 1;
@@ -135,7 +136,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 			$_SESSION['infomessage'] = 'Товар добавлен';
 		}else{
-			$_SESSION['infomessage'] = 'Ошибка добавления товара: ' . mysql_error();
+			$_SESSION['infomessage'] = 'Ошибка добавления товара!';
 		}
 
 

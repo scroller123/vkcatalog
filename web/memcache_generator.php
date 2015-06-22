@@ -52,6 +52,9 @@ if (empty($ERROR)) {
 			/*
 			 * Set up last element
 			 */
+			if ($index++ % PAGE_SIZE == 1) {
+				mysql_query("INSERT INTO `catalog_" . strtolower($key . $order) . "` (`value`) VALUES ('{$line['id']}')");
+			}
 			memcache_set($memcache_obj, 'vk-' . strtolower($key . $order) . '-'.$line['id'], array('next'=>null, 'prev'=>is_array($prev) ? $prev['id'] : null), 0, 0);
 		}
 	}

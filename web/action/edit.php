@@ -14,6 +14,8 @@ if (!empty($data)) {
 				&& preg_match("/^[0-9]+(\.[0-9]{1,2})?$/", $_POST['form']['price'])
 		) {
 
+			mysql_query("START TRANSACTION");
+
 			$sql = "UPDATE `catalog` SET "
 				. "`name` = '" . mysql_escape_string($_POST['form']['name']) . "',"
 				. "`description` = '" . mysql_escape_string($_POST['form']['description']) . "',"
@@ -29,14 +31,11 @@ if (!empty($data)) {
 						$element_key = memcache_get($memcache_obj, 'vk-' . strtolower('price' . $order) . '-'.$data['id']);
 						if (!empty($element_key)) {
 
-
 							$look_after = mysql_fetch_assoc(mysql_query("SELECT `id`,`price` FROM `catalog`"
 									. " WHERE `id` <> " . $data['id']
 									. " 	  AND `" . $key . "` " . ($order=='ASC' ? '>' : '<') . "= '" . mysql_escape_string($_POST['form']['price']) . "'"
 									. " ORDER BY `" . $key . "` " . $order . ", `id` DESC"
 									. " LIMIT 1"));
-
-
 
 							// PRICE PAGE KEYS UPDATE
 							if (empty($look_after) && !empty($element_key['next']) || !empty($look_after) && $look_after['id'] != $element_key['next'])
@@ -57,7 +56,6 @@ if (!empty($data)) {
 								$pageTo = null;
 								if (!empty($look_after)) {
 									$look_after_key = memcache_get($memcache_obj, 'vk-' . strtolower($key . $order) . '-'.$look_after['id']);
-
 									$cur_key['next'] = $look_after['id'];
 									while (!($pageTo = mysql_fetch_assoc(mysql_query("SELECT `id`,`value` FROM `catalog_" . strtolower($key . $order) . "` WHERE `value` = " . $cur_key['next'])))) {
 										$cur_key = memcache_get($memcache_obj, 'vk-' . strtolower($key . $order) . '-'.$cur_key['next']);
@@ -65,34 +63,42 @@ if (!empty($data)) {
 											break;
 									}
 								} else {
-									$last_page = mysql_fetch_assoc(mysql_query("SELECT `value` FROM `catalog_" . strtolower($key . $order) . "` ORDER BY `id` DESC LIMIT 1"));
+									$last_page = mysql_fetch_assoc(mysql_query("SELECT `id`,`value` FROM `catalog_" . strtolower($key . $order) . "` ORDER BY `id` DESC LIMIT 1"));
+									$last_page_key = memcache_get($memcache_obj, 'vk-' . strtolower($key . $order) . '-'.$last_page['value']);
 								}
 
 								// update price page keys
 								if (!empty($pageFrom) && !empty($pageTo) && $pageFrom['id'] < $pageTo['id'] || !empty($pageFrom) && empty($pageTo)) {
 									$pages = mysql_query("SELECT `id`,`value` FROM `catalog_" . strtolower($key . $order) . "` WHERE `id` >= " . $pageFrom['id'] . (!empty($pageTo['id']) ? " AND `id` < " . $pageTo['id'] : "") . " ORDER BY `id` ASC");
+									$insert_values = array();
 									while($page = mysql_fetch_assoc($pages)) {
 										$cur_key = memcache_get($memcache_obj, 'vk-' . strtolower($key . $order) . '-'.$page['value']);
 
-										if (!empty($look_after) && $page['value'] == $look_after_key['prev'] || empty($look_after) && $last_page['id'] == $page['id']) {
-											mysql_query("UPDATE `catalog_" . strtolower($key . $order) . "` SET `value` = " . $data['id'] . " WHERE `id` = " . $page['id']);
+										if (!empty($look_after) && $page['value'] == $look_after_key['prev'] || empty($look_after) && $last_page['id'] == $page['id'] && empty($last_page_key['next'])) {
+// 											mysql_query("UPDATE `catalog_" . strtolower($key . $order) . "` SET `value` = " . $data['id'] . " WHERE `id` = " . $page['id']);
+											$insert_values[] = "({$page['id']},{$data['id']})";
 										} else {
-											mysql_query("UPDATE `catalog_" . strtolower($key . $order) . "` SET `value` = " . $cur_key['next'] . " WHERE `id` = " . $page['id']);
+// 											mysql_query("UPDATE `catalog_" . strtolower($key . $order) . "` SET `value` = " . $cur_key['next'] . " WHERE `id` = " . $page['id']);
+											$insert_values[] = "({$page['id']},{$cur_key['next']})";
 										}
-
 									}
+									mysql_query("INSERT INTO `catalog_" . strtolower($key . $order) . "` (`id`,`value`) VALUES " . implode(",", $insert_values) . " ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)");
+
 								} else if (!empty($pageFrom) &&  $pageTo['id'] < $pageFrom['id'] || empty($pageFrom)) {
 									$pages = mysql_query("SELECT `id`,`value` FROM `catalog_" . strtolower($key . $order) . "` WHERE `id` >= " . $pageTo['id'] . (!empty($pageFrom['id']) ? " AND `id` <" . (!empty($pageFromIsPageKey)?"=":"") . $pageFrom['id'] : "") . " ORDER BY `id` ASC");
+									$insert_values = array();
 									while($page = mysql_fetch_assoc($pages)) {
 										$cur_key = memcache_get($memcache_obj, 'vk-' . strtolower($key . $order) . '-'.$page['value']);
 
 										if (!empty($look_after) && $page['value'] == $look_after['id'] /*|| empty($look_after_key['prev']) && $page['value'] == $look_after['id']*/) {
-											mysql_query("UPDATE `catalog_" . strtolower($key . $order) . "` SET `value` = " . $data['id'] . " WHERE `id` = " . $page['id']);
+// 											mysql_query("UPDATE `catalog_" . strtolower($key . $order) . "` SET `value` = " . $data['id'] . " WHERE `id` = " . $page['id']);
+											$insert_values[] = "({$page['id']},{$data['id']})";
 										} else {
-											mysql_query("UPDATE `catalog_" . strtolower($key . $order) . "` SET `value` = " . $cur_key['prev'] . " WHERE `id` = " . $page['id']);
+// 											mysql_query("UPDATE `catalog_" . strtolower($key . $order) . "` SET `value` = " . $cur_key['prev'] . " WHERE `id` = " . $page['id']);
+											$insert_values[] = "({$page['id']},{$cur_key['prev']})";
 										}
-
 									}
+									mysql_query("INSERT INTO `catalog_" . strtolower($key . $order) . "` (`id`,`value`) VALUES " . implode(",", $insert_values) . " ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)");
 								}
 							}
 
@@ -188,8 +194,10 @@ if (!empty($data)) {
 					}
 				}
 
+				mysql_query("COMMIT");
 				$_SESSION['infomessage'] = 'Товар сохранен';
 			} else {
+				mysql_query("ROLLBACK");
 				$_SESSION['infomessage'] = 'Ошибка сохранения товара!';
 			}
 
@@ -199,7 +207,7 @@ if (!empty($data)) {
 	}
 
 	print '<h3>Редактирование товара</h3>';
-	include 'form_add_edit.php';
+	include '../src/form_add_edit.php';
 
 }else{
 	print 'Объект не найден';

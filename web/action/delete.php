@@ -8,6 +8,8 @@ ob_start();
 $data = mysql_fetch_assoc(mysql_query("SELECT `id`, `name`, `description`, `price`, `image_url` FROM `catalog` WHERE `id` = " . mysql_escape_string($_GET['id'])));
 if (!empty($data)) {
 
+	mysql_query("START TRANSACTION");
+
 	$sql = "DELETE FROM `catalog` WHERE `id` = " . $data['id'];
 
 	if (mysql_query($sql)) {
@@ -29,7 +31,7 @@ if (!empty($data)) {
 							break;
 					}
 
-					if (!is_null($page)) {
+					if (!empty($page)) {
 						$pages = mysql_query("SELECT `id`,`value` FROM `catalog_" . strtolower($key . $order) . "` WHERE `id` >= " . $page['id'] . " ORDER BY `id` ASC");
 						$insert_values = array();
 						while($page = mysql_fetch_assoc($pages)) {
@@ -37,11 +39,14 @@ if (!empty($data)) {
 							if (!empty($cur_key['next'])) {
 								$insert_values[] = "({$page['id']},{$cur_key['next']})";
 							}
+							$lastpage = $page;
 						}
 						mysql_query("INSERT INTO `catalog_" . strtolower($key . $order) . "` (`id`,`value`) VALUES " . implode(",", $insert_values) . " ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)");
 
-						if ($count - 1 % PAGE_SIZE == 0)
-							mysql_query("DELETE FROM `catalog` WHERE `id` >= " . $page['id']);
+
+						if (($count - 1) % PAGE_SIZE == 0) {
+							mysql_query("DELETE FROM `catalog_" . strtolower($key . $order) . "` WHERE `id` >= " . $lastpage['id']);
+						}
 
 					}
 
@@ -60,8 +65,10 @@ if (!empty($data)) {
 			}
 		}
 
+		mysql_query("COMMIT");
 		$_SESSION['infomessage'] = 'Товар удален';
 	} else {
+		mysql_query("ROLLBACK");
 		$_SESSION['infomessage'] = 'Ошибка удаления товара! '.mysql_error();
 	}
 

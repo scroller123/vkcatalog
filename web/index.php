@@ -1,9 +1,8 @@
 <?php
-include_once 'init.php';
-include_once 'dbconnect.php';
-include_once 'functions.php';
+include_once '../src/init.php';
+include_once '../src/dbconnect.php';
+include_once '../src/functions.php';
 fix_time();
-
 
 
 if (isset($_GET['add'])) {

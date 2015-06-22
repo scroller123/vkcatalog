@@ -1,11 +1,11 @@
 <?php
-die('Blocked');
+// die('Blocked');
 /**
  * Generator memcache elements list
  */
-require_once 'init.php';
-require_once 'dbconnect.php';
-include_once 'functions.php';
+require_once '../src/init.php';
+require_once '../src/dbconnect.php';
+include_once '../src/functions.php';
 fix_time();
 mt_srand(time());
 

@@ -10,6 +10,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 			&& preg_match("/^[0-9]+(\.[0-9]{1,2})?$/", $_POST['form']['price'])
 	) {
 
+		mysql_query("START TRANSACTION");
+
 		$sql = "INSERT INTO `catalog` "
 			 . "(`id`, `name`, `description`, `price`, `image_url`) VALUES "
 			 . "(NULL,"
@@ -39,23 +41,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 						 * is last element
 						 */
 
-						$last_page = mysql_fetch_assoc(mysql_query("SELECT `value` FROM `catalog_" . strtolower($key . $order) . "` ORDER BY `id` DESC LIMIT 1"));
+						$last_page = mysql_fetch_assoc(mysql_query("SELECT `id`, `value` FROM `catalog_" . strtolower($key . $order) . "` ORDER BY `id` DESC LIMIT 1"));
 						$last_key = memcache_get($memcache_obj, 'vk-' . strtolower($key . $order) . '-'.$last_page['value']);
 						$lastID = $last_page['value'];
 
 						$n = 1;
-						while (!is_null($last_key['next'])) {
+						while (!empty($last_key['next'])) {
 							$lastID = $last_key['next'];
 							$last_key = memcache_get($memcache_obj, 'vk-' . strtolower($key . $order) . '-'.$last_key['next']);
 							$n++;
 						}
 
 						memcache_set($memcache_obj, 'vk-' . strtolower($key . $order) . '-'.$ID, array('next'=>null, 'prev'=>$lastID), 0, 0);
-	 					memcache_replace($memcache_obj, 'vk-' . strtolower($key . $order) . '-'.$lastID, array('next'=>$ID, 'prev'=>$last_key['prev']), 0, 0);
+						memcache_replace($memcache_obj, 'vk-' . strtolower($key . $order) . '-'.$lastID, array('next'=>$ID, 'prev'=>$last_key['prev']), 0, 0);
 
-	 					// generate last page if needed
-	 					if ($n == PAGE_SIZE)
-	 						mysql_query("INSERT INTO `catalog_" . strtolower($key . $order) . "` (`value`) VALUES ('{$ID}')");
+
+						// generate last page if needed
+						if ($n == PAGE_SIZE) {
+							mysql_query("INSERT INTO `catalog_" . strtolower($key . $order) . "` (`id`, `value`) VALUES ('" . ($last_page['id'] + 1) . "', '{$ID}')");
+						}
+
+
 					} else {
 						$var_key = memcache_get($memcache_obj, 'vk-' . strtolower($key . $order) . '-'.$look_after['id']);
 						if (empty($var_key['prev'])) {
@@ -71,19 +77,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 							while($page = mysql_fetch_assoc($pages)) {
 								$cur_key = memcache_get($memcache_obj, 'vk-' . strtolower($key . $order) . '-'.$page['value']);
 								$insert_values[] = "({$page['id']},{$cur_key['prev']})";
+								$last_page = $page;
 							}
 							mysql_query("INSERT INTO `catalog_" . strtolower($key . $order) . "` (`id`,`value`) VALUES " . implode(",", $insert_values) . " ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)");
 
 							// generate last page if needed
 							$n = 1;
-							while (!is_null($cur_key['next'])) {
+							while (!empty($cur_key['next'])) {
 								$lastID = $cur_key['next'];
 								$cur_key = memcache_get($memcache_obj, 'vk-' . strtolower($key . $order) . '-'.$cur_key['next']);
 								$n++;
 							}
 
-							if ($n == PAGE_SIZE)
-								mysql_query("INSERT INTO `catalog_" . strtolower($key . $order) . "` (`value`) VALUES ('{$lastID}')");
+							if ($n == PAGE_SIZE) {
+								mysql_query("INSERT INTO `catalog_" . strtolower($key . $order) . "` (`id`, `value`) VALUES ('" . ($last_page['id'] + 1) . "', '{$lastID}')");
+							}
+
 						} else {
 							/*
 							 * is middle element
@@ -91,6 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 							$nextID = $look_after['id'];
 							$prevID = $var_key['prev'];
+
 							$prev = memcache_get($memcache_obj, 'vk-' . strtolower($key . $order) . '-'.$prevID);
 							$next = memcache_get($memcache_obj, 'vk-' . strtolower($key . $order) . '-'.$nextID);
 
@@ -100,33 +110,56 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 							// getting the next page key
 							$page = null;
-							$cur_key['next'] = $nextID;
+							$cur_key['next'] = $look_after['id'];
 							while (!($page = mysql_fetch_assoc(mysql_query("SELECT `id`,`value` FROM `catalog_" . strtolower($key . $order) . "` WHERE `value` = " . $cur_key['next'])))) {
 								$cur_key = memcache_get($memcache_obj, 'vk-' . strtolower($key . $order) . '-'.$cur_key['next']);
 								if (empty($cur_key['next']))
 									break;
 							}
 
-							if (!is_null($page)) {
+							if (!empty($page)) {
 								$pages = mysql_query("SELECT `id`,`value` FROM `catalog_" . strtolower($key . $order) . "` WHERE `id` >= " . $page['id'] . " ORDER BY `id` ASC");
 								$insert_values = array();
 								while($page = mysql_fetch_assoc($pages)) {
 									$cur_key = memcache_get($memcache_obj, 'vk-' . strtolower($key . $order) . '-'.$page['value']);
-// 									mysql_query("UPDATE `catalog_" . strtolower($key . $order) . "` SET `value` = " . $cur_key['prev'] . " WHERE `id` = " . $page['id']);
 									$insert_values[] = "({$page['id']},{$cur_key['prev']})";
+									$last_page = $page;
 								}
 								mysql_query("INSERT INTO `catalog_" . strtolower($key . $order) . "` (`id`,`value`) VALUES " . implode(",", $insert_values) . " ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)");
 
 	 							// generate last page if needed
 								$n = 1;
-								while (!is_null($cur_key['next'])) {
+								while (!empty($cur_key['next'])) {
 									$lastID = $cur_key['next'];
 									$cur_key = memcache_get($memcache_obj, 'vk-' . strtolower($key . $order) . '-'.$cur_key['next']);
 									$n++;
 								}
 
-								if ($n == PAGE_SIZE)
-									mysql_query("INSERT INTO `catalog_" . strtolower($key . $order) . "` (`value`) VALUES ('{$lastID}')");
+								if ($n == PAGE_SIZE) {
+									mysql_query("INSERT INTO `catalog_" . strtolower($key . $order) . "` (`id`,`value`) VALUES ('" . ($last_page['id'] + 1) . "', '{$lastID}')");
+								}
+							} else {
+
+								// insert in last page
+								// getting the PREV page key
+								$cur_key['prev'] = $look_after['id'];
+								while (!($page = mysql_fetch_assoc(mysql_query("SELECT `id`,`value` FROM `catalog_" . strtolower($key . $order) . "` WHERE `value` = " . $cur_key['prev'])))) {
+									$cur_key = memcache_get($memcache_obj, 'vk-' . strtolower($key . $order) . '-'.$cur_key['prev']);
+								}
+
+
+								// generate last page if needed
+								$n = 1;
+								while (!empty($cur_key['next'])) {
+									$lastID = $cur_key['next'];
+									$cur_key = memcache_get($memcache_obj, 'vk-' . strtolower($key . $order) . '-'.$cur_key['next']);
+									$n++;
+								}
+
+								if ($n == PAGE_SIZE) {
+									mysql_query("INSERT INTO `catalog_" . strtolower($key . $order) . "` (`id`,`value`) VALUES ('" . ($page['id'] + 1) . "', '{$lastID}')");
+								}
+
 							}
 
 						}
@@ -134,8 +167,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 				}
 			}
 
+			mysql_query("COMMIT");
 			$_SESSION['infomessage'] = 'Товар добавлен';
 		}else{
+			mysql_query("ROLLBACK");
 			$_SESSION['infomessage'] = 'Ошибка добавления товара!';
 		}
 
@@ -148,7 +183,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 ?><div><a href="?<?php print http_build_query($_SESSION['page'])?>">&larr; Вернуться</a></div><?php
 print '<h3>Добавление товара</h3>';
-include 'form_add_edit.php';
+include '../src/form_add_edit.php';
 
 global $CONTENT;
 $CONTENT = ob_get_contents();

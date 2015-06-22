@@ -13,41 +13,6 @@ if (empty($_GET['page']) || is_nan($_GET['page']))
 	$_GET['page'] = 1;
 
 
-/*
- * remove it!
- */
-// print sprintf("%0.10f", get_execution_time())."<br>";
-// $res = mysql_query("select * from catalog where id mod 50 = 1 ORDER BY id ASC");
-// while($row = mysql_fetch_assoc($res)) {}
-// $res = mysql_query("select * from catalog where id mod 50 = 1 ORDER BY id DESC");
-// while($row = mysql_fetch_assoc($res)) {}
-// $res = mysql_query("select * from catalog where id mod 50 = 1 ORDER BY price ASC");
-// while($row = mysql_fetch_assoc($res)) {}
-// $res = mysql_query("select * from catalog where id mod 50 = 1 ORDER BY price DESC");
-// while($row = mysql_fetch_assoc($res)) {}
-
-// print sprintf("%0.10f", get_execution_time())."<br>";
-// fix_time();
-
-// $ID = mt_rand(0, 999999);
-// $price = mt_rand(1, 99999);
-// foreach (array('id','price') as $key) {
-// 	foreach (array('ASC','DESC') as $order) {
-// 		$look_after = mysql_fetch_assoc(mysql_query("SELECT `id` FROM `catalog` "
-// 				. " WHERE `id` <> " . $ID
-// 				. " 	  AND `" . $key . "` " . ($order=='ASC' ? '>' : '<') . "= '" . ($key=='id' ? $ID : $price) . "'"
-// 				. " ORDER BY `" . $key . "` " . $order . "" . ($key!='id' ? ', `id` DESC' : '')
-// 				. " LIMIT 1"));
-
-
-// 		for($i=0; $i<20000; $i++) {
-// 			$last_key = memcache_get($memcache_obj, 'vk-' . strtolower($key . $order) . '-'.mt_rand(1, 999999));
-// 		}
-// 	}
-// }
-// print sprintf("%0.10f", get_execution_time())."<br>";
-
-
 $_SESSION['page']['order'] = $_GET['order'];
 $_SESSION['page']['direction'] = $_GET['direction'];
 $_SESSION['page']['page'] = $_GET['page'];

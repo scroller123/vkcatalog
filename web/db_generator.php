@@ -5,8 +5,8 @@ die('Blocked');
  */
 mt_srand(time());
 
-require_once 'init.php';
-require_once 'dbconnect.php';
+require_once '../src/init.php';
+require_once '../src/dbconnect.php';
 
 $titlePreWords = array('Лучший','Самый','Потрясающий','Идеальный','Восхитительный','Умопомрачительный','Незабываемый');
 $titleWords = array('стол','стул','носок','салют','оттенок','ботинок','сандаль','отдых','листок','чайник','заварник','кафетерий','лимон');
